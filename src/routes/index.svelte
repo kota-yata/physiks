@@ -1,7 +1,6 @@
-<script context="module" lang="ts">
-  import Biography from '$lib/section/biography.svelte';
-  import Top from '$lib/section/top.svelte';
-  import Works from '$lib/section/works.svelte';
+<script lang="ts">
+import Canvas from "$lib/Canvas.svelte";
+
   export const prerender = true;
   export const hydrate = false;
 </script>
@@ -10,4 +9,4 @@
   <title>Temp</title>
 </svelte:head>
 
-<div>Yeah</div>
+<Canvas />
