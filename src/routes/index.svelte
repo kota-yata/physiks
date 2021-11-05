@@ -1,12 +1,11 @@
 <script lang="ts">
   import Canvas from '$lib/Canvas.svelte';
 
-  export const prerender = true;
-  export const hydrate = false;
+  // export const prerender = true;
 </script>
 
 <svelte:head>
-  <title>Temp</title>
+  <title>Physics</title>
 </svelte:head>
 
 <Canvas />
