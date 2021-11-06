@@ -1,30 +1,41 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Ops } from '$lib/Shape';
 
-  let canvasEl: HTMLCanvasElement;
+  let canvas: HTMLCanvasElement;
+  let ops: Ops;
 
-  const canvas = {
-    width: 1000,
-    height: 1000
-  };
-
-  const drawRect = (context: CanvasRenderingContext2D) => {
-    context.beginPath();
-    context.fillStyle = '#ffffff';
-    context.rect(canvas.width * 0.5 - 20, canvas.height * 0.9, 40, 10);
-    context.fill();
-  };
+  // Move rectangle every frame
+  const FRAME_RATE = 60;
+  const loop = (frameCount = 0) => {
+    if (frameCount % (60 / FRAME_RATE) === 0) {
+      ops.context.clearRect(0, 0, canvas.width, canvas.height);
+      ops.move();
+      ops.draw();
+    }
+    const count = frameCount + 1;
+    requestAnimationFrame(() => { loop(count) });
+  }
+  const triggerKeydownEvents = (event: KeyboardEvent) => {
+    if (ops.keys[event.code] === undefined) return;
+    ops.keys[event.code] = event.type === "keydown";
+    event.preventDefault();
+  }
 
   onMount(() => {
-    console.log('Onmount');
-    const context = canvasEl.getContext('2d');
     canvas.width = document.body.clientWidth;
     canvas.height = document.body.clientHeight;
-    drawRect(context);
+    // Move ops with keyboard
+    ops = new Ops(canvas);
+    ops.draw();
+    window.addEventListener('keydown', triggerKeydownEvents);
+    window.addEventListener('keyup', triggerKeydownEvents);
+    loop();
+    // Draw circle
   });
 </script>
 
-<canvas bind:this={canvasEl} width={canvas.width} height={canvas.height} />
+<canvas bind:this={canvas}/>
 
 <style lang="scss">
   canvas {
