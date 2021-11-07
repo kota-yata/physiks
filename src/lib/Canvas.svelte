@@ -12,12 +12,12 @@
     ops.move();
     ops.draw();
     requestAnimationFrame(loop);
-  }
+  };
   const triggerKeydownEvents = (event: KeyboardEvent) => {
     if (ops.keys[event.code] === undefined) return;
-    ops.keys[event.code] = event.type === "keydown";
+    ops.keys[event.code] = event.type === 'keydown';
     event.preventDefault();
-  }
+  };
 
   onMount(() => {
     canvas.width = document.body.clientWidth;
@@ -31,11 +31,11 @@
   });
 </script>
 
-<canvas bind:this={canvas}/>
+<canvas bind:this={canvas} />
 
 <style lang="scss">
   canvas {
-		width: 100%;
-		height: 100%;
-	}
+    width: 100%;
+    height: 100%;
+  }
 </style>
