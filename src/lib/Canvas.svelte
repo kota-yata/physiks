@@ -6,15 +6,12 @@
   let ops: Ops;
 
   // Move rectangle every frame
-  const FRAME_RATE = 60;
-  const loop = (frameCount = 0) => {
-    if (frameCount % (60 / FRAME_RATE) === 0) {
-      ops.context.clearRect(0, 0, canvas.width, canvas.height);
-      ops.move();
-      ops.draw();
-    }
-    const count = frameCount + 1;
-    requestAnimationFrame(() => { loop(count) });
+  const loop = () => {
+    ops.context.clearRect(0, 0, canvas.width, canvas.height);
+    ops.collide();
+    ops.move();
+    ops.draw();
+    requestAnimationFrame(loop);
   }
   const triggerKeydownEvents = (event: KeyboardEvent) => {
     if (ops.keys[event.code] === undefined) return;
@@ -31,7 +28,6 @@
     window.addEventListener('keydown', triggerKeydownEvents);
     window.addEventListener('keyup', triggerKeydownEvents);
     loop();
-    // Draw circle
   });
 </script>
 
