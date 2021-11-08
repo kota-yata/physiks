@@ -9,9 +9,9 @@ const calcDegree = (sideX: number, sideY: number) => {
 const calcSide = (degree: number, longestSide: number) => {
   const radian = degree / (180 / Math.PI);
   const cos = Math.cos(radian);
-  const tan = Math.tan(radian);
-  const x = longestSide / cos;
-  const y = longestSide * tan;
+  const sin = Math.sin(radian);
+  const x = longestSide * cos;
+  const y = longestSide * sin;
   return { x, y };
 };
 
@@ -30,6 +30,7 @@ export class Ops {
   arcY: number;
   arcSpeedX: number;
   arcSpeedY: number;
+  arcDistance: number;
   // Circle coordinate of previous frame
   arcPreviousX: number;
   arcPreviousY: number;
@@ -39,7 +40,7 @@ export class Ops {
     this.context = canvasEl.getContext('2d');
     this.context.fillStyle = '#ffffff';
     this.rectWidth = 100;
-    this.rectHeight = 50;
+    this.rectHeight = 10;
     this.rectX = canvasEl.width * 0.5 - this.rectWidth / 2;
     this.rectY = canvasEl.height * 0.9;
     this.rectSpeed = 15;
@@ -73,7 +74,6 @@ export class Ops {
       x: Math.abs(this.arcX - rectCenter.x),
       y: Math.abs(this.arcY - rectCenter.y)
     };
-    // eslint-disable-next-line no-useless-return
     if (circleDistance.x > (this.rectWidth / 2 + this.arcRadius) || circleDistance.y > (this.rectHeight / 2 + this.arcRadius)) return;
     if (circleDistance.x <= this.rectWidth / 2) {
       this.arcSpeedY = -this.arcSpeedY;
@@ -90,8 +90,8 @@ export class Ops {
         y: circleDistance.y - this.rectHeight / 2
       },
       fromPrevious: {
-        x: this.arcX - this.arcPreviousX,
-        y: this.arcY - this.arcPreviousY
+        x: Math.abs(this.arcX - this.arcPreviousX),
+        y: Math.abs(this.arcY - this.arcPreviousY)
       }
     };
     const digreeToRect = calcDegree(coordinateDiff.fromRect.x, coordinateDiff.fromRect.y);
@@ -99,9 +99,11 @@ export class Ops {
     const distanceFromPrevious = Math.sqrt(coordinateDiff.fromPrevious.x ** 2 + coordinateDiff.fromPrevious.y ** 2);
     const bouncingDegree = digreeToRect - (digreeFromPrevious - digreeToRect);
     const bouncingSpeed = calcSide(bouncingDegree, distanceFromPrevious);
+    console.log('x', this.arcSpeedX, bouncingSpeed.x);
+    console.log('y', this.arcSpeedY, bouncingSpeed.y);
     // WIP
-    this.arcSpeedX = (bouncingSpeed.x / coordinateDiff.fromPrevious.x) * this.arcSpeedX;
-    this.arcSpeedY = (bouncingSpeed.y / coordinateDiff.fromPrevious.y) * this.arcSpeedY;
+    this.arcSpeedX = bouncingSpeed.x;
+    this.arcSpeedY = bouncingSpeed.y;
   }
   move(): void {
     // Move rectangle if keydown
