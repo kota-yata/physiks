@@ -1,16 +1,29 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { Ops } from '$lib/Shape';
 
   let canvas: HTMLCanvasElement;
   let ops: Ops;
 
+  let score = 0;
+
+  const highScore = localStorage.getItem('best') || '0';
+
+  const dispatch = createEventDispatcher();
+
   // Move rectangle every frame
   const loop = () => {
     ops.context.clearRect(0, 0, canvas.width, canvas.height);
-    ops.collide();
+    const isContinue = ops.collide();
+    if (!isContinue) {
+      dispatch('over', {
+        score: ops.score
+      });
+      return;
+    }
     ops.move();
     ops.draw();
+    score = ops.score;
     requestAnimationFrame(loop);
   };
   const triggerKeydownEvents = (event: KeyboardEvent) => {
@@ -31,11 +44,26 @@
   });
 </script>
 
-<canvas bind:this={canvas} />
+<section>
+  <canvas bind:this={canvas} />
+  <p class="score">
+    Score: {score}<br />
+    High Score: {highScore}
+  </p>
+</section>
 
 <style lang="scss">
-  canvas {
-    width: 100%;
-    height: 100%;
+  @import '../styles/tarrget.scss';
+  section {
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-family: $tarrget;
+    }
   }
 </style>

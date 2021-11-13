@@ -15,6 +15,11 @@ const calcSide = (degree: number, longestSide: number) => {
   return { x, y };
 };
 
+const addSpeed = (score: number, speedX: number, speedY: number) => {
+  const newSpeed = [speedX + speedX / 30, speedY + speedY / 30];
+  return newSpeed;
+};
+
 export class Ops {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
@@ -34,7 +39,9 @@ export class Ops {
   // Circle coordinate of previous frame
   arcPreviousX: number;
   arcPreviousY: number;
-  keys: { ArrowLeft: boolean, ArrowRight: boolean }
+  keys: { ArrowLeft: boolean, ArrowRight: boolean };
+  // Score
+  score: number;
   constructor(canvasEl: HTMLCanvasElement) {
     this.canvas = canvasEl;
     this.context = canvasEl.getContext('2d');
@@ -51,6 +58,7 @@ export class Ops {
       ArrowLeft: false,
       ArrowRight: false,
     };
+    this.score = 0;
   }
   draw(): void {
     this.context.beginPath();
@@ -61,10 +69,21 @@ export class Ops {
     this.context.closePath();
     this.context.fill();
   }
-  collide(): void {
+  collide(): boolean {
+    if (this.arcY + this.arcSpeedY > this.canvas.height - this.arcRadius) return false;
     // Both horizontal and vertical wall bouncing
-    if (this.arcX + this.arcSpeedX > this.canvas.width - this.arcRadius || this.arcX + this.arcSpeedX < this.arcRadius) this.arcSpeedX = -this.arcSpeedX;
-    if (this.arcY + this.arcSpeedY > this.canvas.height - this.arcRadius || this.arcY + this.arcSpeedY < this.arcRadius) this.arcSpeedY = -this.arcSpeedY;
+    if (this.arcX + this.arcSpeedX > this.canvas.width - this.arcRadius || this.arcX + this.arcSpeedX < this.arcRadius) {
+      this.arcSpeedX = -this.arcSpeedX;
+      this.score++;
+      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.score, this.arcSpeedX, this.arcSpeedY);
+      return true;
+    }
+    if (this.arcY + this.arcSpeedY < this.arcRadius) {
+      this.arcSpeedY = -this.arcSpeedY;
+      this.score++;
+      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.score, this.arcSpeedX, this.arcSpeedY);
+      return true;
+    };
     // Collision with rect
     const rectCenter = {
       x: this.rectX + this.rectWidth / 2,
@@ -74,14 +93,14 @@ export class Ops {
       x: Math.abs(this.arcX - rectCenter.x),
       y: Math.abs(this.arcY - rectCenter.y)
     };
-    if (circleDistance.x > (this.rectWidth / 2 + this.arcRadius) || circleDistance.y > (this.rectHeight / 2 + this.arcRadius)) return;
+    if (circleDistance.x > (this.rectWidth / 2 + this.arcRadius) || circleDistance.y > (this.rectHeight / 2 + this.arcRadius)) return true;
     if (circleDistance.x <= this.rectWidth / 2) {
       this.arcSpeedY = -this.arcSpeedY;
-      return;
+      return true;
     };
     if (circleDistance.y <= this.rectHeight / 2) {
       this.arcSpeedX = -this.arcSpeedX;
-      return;
+      return true;
     };
     // Exception (each corner)
     const coordinateDiff = {
@@ -104,6 +123,7 @@ export class Ops {
     // WIP
     this.arcSpeedX = bouncingSpeed.x;
     this.arcSpeedY = bouncingSpeed.y;
+    return true;
   }
   move(): void {
     // Move rectangle if keydown
