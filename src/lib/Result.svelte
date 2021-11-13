@@ -28,7 +28,7 @@
     & > h3 {
       font-size: 40px;
       font-family: $tarrget;
-      color: $purple;
+      color: $blue;
     }
     & > p {
       font-size: 30px;
