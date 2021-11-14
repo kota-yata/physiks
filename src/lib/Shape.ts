@@ -6,16 +6,33 @@ const calcDegree = (sideX: number, sideY: number) => {
   return degree;
 };
 
+const SIN_90 = Math.sin(90 / (180 / Math.PI));
+
 const calcSide = (degree: number, longestSide: number) => {
-  const radian = degree / (180 / Math.PI);
-  const cos = Math.cos(radian);
+  let orthant: 1 | 2 | 3 | 4;
+  let degreeAsTriangle: number;
+  const positiveDegree = degree < 0 ? 360 + degree : degree;
+  if (positiveDegree < 90) {
+    orthant = 1;
+    degreeAsTriangle = degree;
+  } else if (positiveDegree < 180) {
+    orthant = 2;
+    degreeAsTriangle = 180 - degree;
+  } else if (positiveDegree < 270) {
+    orthant = 3;
+    degreeAsTriangle = 270 - degree;
+  } else {
+    orthant = 4;
+    degreeAsTriangle = 360 - degree;
+  }
+  const radian = degreeAsTriangle / (180 / Math.PI);
   const sin = Math.sin(radian);
-  const x = longestSide * cos;
-  const y = longestSide * sin;
+  const y = orthant === 3 || orthant === 4 ? longestSide * sin / SIN_90 : -(longestSide * sin / SIN_90);
+  const x = orthant === 2 || orthant === 3 ? -(Math.sqrt(longestSide ** 2 - y ** 2)) : Math.sqrt(longestSide ** 2 - y ** 2);
   return { x, y };
 };
 
-const addSpeed = (score: number, speedX: number, speedY: number) => {
+const addSpeed = (speedX: number, speedY: number) => {
   const newSpeed = [speedX + speedX / 30, speedY + speedY / 30];
   return newSpeed;
 };
@@ -47,7 +64,7 @@ export class Ops {
     this.context = canvasEl.getContext('2d');
     this.context.fillStyle = '#ffffff';
     this.rectWidth = 100;
-    this.rectHeight = 10;
+    this.rectHeight = 100;
     this.rectX = canvasEl.width * 0.5 - this.rectWidth / 2;
     this.rectY = canvasEl.height * 0.9;
     this.rectSpeed = 15;
@@ -74,14 +91,12 @@ export class Ops {
     // Both horizontal and vertical wall bouncing
     if (this.arcX + this.arcSpeedX > this.canvas.width - this.arcRadius || this.arcX + this.arcSpeedX < this.arcRadius) {
       this.arcSpeedX = -this.arcSpeedX;
-      this.score++;
-      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.score, this.arcSpeedX, this.arcSpeedY);
+      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.arcSpeedX, this.arcSpeedY);
       return true;
     }
     if (this.arcY + this.arcSpeedY < this.arcRadius) {
       this.arcSpeedY = -this.arcSpeedY;
-      this.score++;
-      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.score, this.arcSpeedX, this.arcSpeedY);
+      [this.arcSpeedX, this.arcSpeedY] = addSpeed(this.arcSpeedX, this.arcSpeedY);
       return true;
     };
     // Collision with rect
@@ -90,36 +105,37 @@ export class Ops {
       y: this.rectY + this.rectHeight / 2
     };
     const circleDistance = {
-      x: Math.abs(this.arcX - rectCenter.x),
-      y: Math.abs(this.arcY - rectCenter.y)
+      x: this.arcX - rectCenter.x,
+      y: this.arcY - rectCenter.y
     };
-    if (circleDistance.x > (this.rectWidth / 2 + this.arcRadius) || circleDistance.y > (this.rectHeight / 2 + this.arcRadius)) return true;
-    if (circleDistance.x <= this.rectWidth / 2) {
+    if (Math.abs(circleDistance.x) > (this.rectWidth / 2 + this.arcRadius) || Math.abs(circleDistance.y) > (this.rectHeight / 2 + this.arcRadius)) return true;
+    if (Math.abs(circleDistance.x) <= this.rectWidth / 2) {
       this.arcSpeedY = -this.arcSpeedY;
+      this.score += 10;
       return true;
     };
-    if (circleDistance.y <= this.rectHeight / 2) {
+    if (Math.abs(circleDistance.y) <= this.rectHeight / 2) {
       this.arcSpeedX = -this.arcSpeedX;
+      this.score += 10;
       return true;
     };
     // Exception (each corner)
     const coordinateDiff = {
       fromRect: {
-        x: (circleDistance.x - this.rectWidth / 2) / 2,
-        y: circleDistance.y - this.rectHeight / 2
+        x: circleDistance.x >= 0 ? circleDistance.x - this.rectWidth / 2 : circleDistance.x + this.rectWidth / 2,
+        y: circleDistance.y >= 0 ? circleDistance.y - this.rectHeight / 2 : circleDistance.y - this.rectHeight / 2
       },
       fromPrevious: {
-        x: Math.abs(this.arcX - this.arcPreviousX),
-        y: Math.abs(this.arcY - this.arcPreviousY)
+        x: -this.arcSpeedX,
+        y: -this.arcSpeedY
       }
     };
-    const digreeToRect = calcDegree(coordinateDiff.fromRect.x, coordinateDiff.fromRect.y);
-    const digreeFromPrevious = calcDegree(coordinateDiff.fromPrevious.x, coordinateDiff.fromPrevious.y);
+    const degreeToRect = calcDegree(coordinateDiff.fromRect.x, coordinateDiff.fromRect.y);
+    const degreeFromPrevious = calcDegree(coordinateDiff.fromPrevious.x, coordinateDiff.fromPrevious.y);
     const distanceFromPrevious = Math.sqrt(coordinateDiff.fromPrevious.x ** 2 + coordinateDiff.fromPrevious.y ** 2);
-    const bouncingDegree = digreeToRect - (digreeFromPrevious - digreeToRect);
+    const bouncingDegree = degreeToRect - (degreeFromPrevious - degreeToRect);
+    this.score += Math.round(bouncingDegree);
     const bouncingSpeed = calcSide(bouncingDegree, distanceFromPrevious);
-    console.log('x', this.arcSpeedX, bouncingSpeed.x);
-    console.log('y', this.arcSpeedY, bouncingSpeed.y);
     // WIP
     this.arcSpeedX = bouncingSpeed.x;
     this.arcSpeedY = bouncingSpeed.y;
