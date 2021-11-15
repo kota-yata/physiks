@@ -14,6 +14,9 @@
   {#if isHighest}
     <h3>High Score!!</h3>
   {/if}
+  <a href="https://twitter.com/share?url=https://physiks.vercel.app&text={`I got ${score} points😆%0A`}&hashtags=PHYSIKS&related=@kota_yata" target="blank">
+    <img alt="twitter icon" src="/twitter.svg" />
+  </a>
 </section>
 
 <style lang="scss">
