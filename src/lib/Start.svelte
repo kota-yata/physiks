@@ -11,14 +11,6 @@
 
 <section>
   <h1>Physiks</h1>
-  <lottie-player
-    src="https://assets3.lottiefiles.com/packages/lf20_uxaknvc7.json"
-    background="transparent"
-    speed="1"
-    style="width: 300px; height: 300px; margin-top: -50px;"
-    loop
-    autoplay
-  />
   <p>Press space to start</p>
 </section>
 
